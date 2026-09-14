@@ -4,5 +4,5 @@ logs/*
 !logs/.gitkeep
 __pycache__/
 *.pyc
-.env
+#.env
 .DS_Store
