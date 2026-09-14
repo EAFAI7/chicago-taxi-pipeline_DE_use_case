@@ -16,7 +16,7 @@ et agregation en KPIs prets pour la BI. Architecture medaillon
 
 ## TL;DR
 1. cloner repo et se mettre sur la branche main (par défaut)
-2. se positionner dessus via terminal
+2. se positionner sur le dossier du clone via terminal
 3. lancer la commande: 
 docker compose up -d --build
 (si besoin de relancer: 
@@ -24,6 +24,14 @@ docker compose down (ou down -v) puis docker compose up -d --build)
 4. Suivre l'execution dans l'UI Airflow : http://localhost:8080 (username: admin, password: admin)
 5. Explorer les donnees dans la console MinIO : http://localhost:9001 (username: minioadmin, password: minioadmin)
 
+**Attention** : `down -v` ne supprime que les volumes Docker (Postgres,
+MinIO), pas `data/raw/` qui est un simple dossier local monté en volume
+bind. Comme le pipeline fait un `overwrite` complet à chaque run (pas
+d'ingestion incrémentale), il vaut mieux vider ce dossier avant de
+relancer, pour ne pas retraiter d'anciens fichiers restants du run précédent. Pour cela lancer la commande (dossier du clone)
+
+Remove-Item data\raw\*.json
+​```
 
 ```bash
 # 1. Cloner le repo puis se placer à la racine
