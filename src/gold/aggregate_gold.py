@@ -9,8 +9,6 @@ taxi_daily_performance,
 company_daily_performance,
 taxi_monthly_performance, 
 company_monthly_performance. 
-P.S. :Pas de base SQL à part, on lit directement les fichiers (DuckDB, pandas, Superset...
-marchent tous avec du S3).
 """
 import sys
 from pathlib import Path
