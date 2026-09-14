@@ -160,3 +160,4 @@ services:
 volumes:
   postgres-db-volume:
   minio-data:
+  postgres_bi_data:
