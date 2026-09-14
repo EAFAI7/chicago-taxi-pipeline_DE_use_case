@@ -21,8 +21,8 @@ et agregation en KPIs prets pour la BI. Architecture medaillon
 docker compose up -d --build
 (si besoin de relancer: 
 docker compose down (ou down -v) puis docker compose up -d --build)
-4. Suivre l'execution dans l'UI Airflow : http://localhost:8080
-5. Explorer les donnees dans la console MinIO : http://localhost:9001
+4. Suivre l'execution dans l'UI Airflow : http://localhost:8080 (username: admin, password: admin)
+5. Explorer les donnees dans la console MinIO : http://localhost:9001 (username: minioadmin, password: minioadmin)
 
 
 ```bash
