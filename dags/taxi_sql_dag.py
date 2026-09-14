@@ -1,13 +1,15 @@
 from airflow.operators.python import PythonOperator
 from airflow import DAG
 
+from datetime import datetime
+
+
 from postgres.install_gold import install_gold
 from postgres.load_gold import load_gold_table
 
 with DAG(
     dag_id="chicago_taxi_gold_postgres",
     description="install postgres gold schema and load gold tables from S3",
-    default_args=default_args,
     schedule=None,  # declenchement manuel pour ce test technique
     start_date=datetime(2023, 1, 1),
     catchup=False,
