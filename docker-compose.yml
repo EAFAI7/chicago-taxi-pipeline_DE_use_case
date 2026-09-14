@@ -89,7 +89,7 @@ services:
       POSTGRES_USER: analytics
       POSTGRES_PASSWORD: analytics
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - postgres_bi_data:/var/lib/postgresql/data
 
