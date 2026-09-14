@@ -16,14 +16,22 @@ et agregation en KPIs prets pour la BI. Architecture medaillon
 
 ## TL;DR
 1. cloner repo et se mettre sur la branche main (par défaut)
-2. se positionner dessus via terminal
+2. se positionner sur le dossier du clone via terminal
 3. lancer la commande: 
 docker compose up -d --build
 (si besoin de relancer: 
 docker compose down (ou down -v) puis docker compose up -d --build)
-4. Suivre l'execution dans l'UI Airflow : http://localhost:8080
-5. Explorer les donnees dans la console MinIO : http://localhost:9001
+4. Suivre l'exécution dans l'UI Airflow : http://localhost:8080 (username: admin, password: admin)
+5. Explorer les données dans la console MinIO : http://localhost:9001 (username: minioadmin, password: minioadmin)
 
+**Attention** : `down -v` ne supprime que les volumes Docker (Postgres,
+MinIO), pas `data/raw/` qui est un simple dossier local monté en volume
+bind. Comme le pipeline fait un `overwrite` complet à chaque run (pas
+d'ingestion incrémentale), il vaut mieux vider ce dossier avant de
+relancer, pour ne pas retraiter d'anciens fichiers restants du run précédent. Pour cela lancer la commande (dossier du clone)
+
+Remove-Item data\raw\*.json
+​```
 
 ```bash
 # 1. Cloner le repo puis se placer à la racine
@@ -69,19 +77,19 @@ zéro, y compris les donnees MinIO et la base metadata d'Airflow).
 ```
 
 Orchestration : un DAG Airflow unique `chicago_taxi_medallion_pipeline`
-avec 4 tâches sequentielles :
+avec 4 tâches séquentielles :
 `download_raw_data >> ingest_bronze >> clean_silver >> aggregate_gold`.
 
 Seule l'ingestion API (`download_raw_data`) écrit sur le disque local
 (`data/raw/`), en simple *landing zone* transitoire pour le JSON brut
-téléchargé page par page. Toutes les couches du datalake proprement dites
+télechargé page par page. Toutes les couches du datalake proprement dites
 (bronze/silver/gold) sont écrites par Spark **directement sur MinIO**, via
 le connecteur S3A, sous forme de fichiers Parquet partitionnés par mois
 (colonne `year_month`).
 
 **Exposition** : sans base SQL dédiée, les fichiers gold (Parquet + CSV)
 sont directement consultables par n'importe quel outil sachant lire du S3 :
-DuckDB, pandas + s3fs, Trino, Superset, ou simplement en téléchargeant les
+DuckDB, pandas + s3fs, Trino, Superset, ou simplement en télechargeant les
 CSV depuis la console MinIO.
 
 ## 4. Jeu de donnees
@@ -89,7 +97,7 @@ CSV depuis la console MinIO.
 Dataset public **Chicago Taxi Trips** :
 <https://data.cityofchicago.org/Transportation/Taxi-Trips-2013-2023-/wrvz-psew>
 
-Le fichier complet fait plusieurs dizaines de Go : on ne le télécharge
+Le fichier complet fait plusieurs dizaines de Go : on ne le télecharge
 jamais en entier. Le script `src/ingestion/download_chicago_taxi.py`
 interroge l'API SODA (Socrata, via `sodapy`) **jour par jour** sur la
 periode demandée : pour chaque jour, une requête `$where` simple (plage
@@ -110,7 +118,7 @@ totale de la période demandée.
   connecteur S3A (jars `hadoop-aws` + `aws-java-sdk-bundle`, ajoutés à
   l'image dans le `Dockerfile`).
 - **Spark en mode `local[*]`** plutôt qu'un cluster Spark dédié. Le code des jobs reste portable vers un vrai cluster (yarn/k8s) sans modification — seul `.master()` dans `spark_session.py` changerait.
-- **Landing zone locale pour le JSON brut** : le téléchargement API écrit
+- **Landing zone locale pour le JSON brut** : le télechargement API écrit
   sur le disque local (`data/raw/`) plutôt que directement sur MinIO. C'est
   une zone transitoire (pas une des couches du medaillon), lue par le job
   bronze, puis pas utilisée.
@@ -121,8 +129,9 @@ totale de la période demandée.
 - **Pas de couche SQL/Postgres d'exposition** : les tables gold restent en
   Parquet/CSV sur MinIO. Plus simple, et suffisant pour ce scope — un vrai
   besoin d'interrogation SQL interactif justifierait d'ajouter un moteur
-  de requêtage (PostgreSQL ou DuckDB) par-dessus ces fichiers plutêt
-  que de dupliquer les données dans une base a part. L'ajout de cette couche d'exposition est en cours, et peut être consulté via la branche : `feature_postgreSQL_BI_Layer`
+  de requêtage (PostgreSQL ou DuckDB) par-dessus ces fichiers plutôt
+  que de dupliquer les données dans une base à part. 
+
 - **Déduplication en silver, pas en bronze** : bronze doit rester le miroir fidèle
   de la source pour la traçabilité. La logique de qualite (dédoublonnage, filtres,
   typage) est implémentée en silver.
@@ -134,7 +143,7 @@ totale de la période demandée.
 | Table | Description |
 |---|---|
 | `daily_revenue` | Nombre de trajets, revenu total, part fare/tips par jour |
-| `avg_trip_duration` | Duree moyenne (minutes) et distance moyenne (miles) par jour |
+| `avg_trip_duration` | Durée moyenne (minutes) et distance moyenne (miles) par jour |
 | `taxi_daily_performance` | performance quotidienne de chaque taxi: nombre de kms parcourus, temps effectué en trajet et montants facturés par jour par taxi|
 | `company_daily_performance` | performance quotidienne de chaque compagnie de taxis: nombre de kms parcourus, temps effectué en trajet et montants facturés par jour par compagnie |
 | `taxi_monthly_performance` | performance mensuelle de chaque taxi: nombre de kms parcourus, temps effectué en trajet et montants facturés par mois par taxi |

@@ -22,8 +22,8 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from common.spark_session import get_spark  # noqa: E402
 from common.storage import s3a_path  # noqa: E402
 
-MAX_TRIP_SECONDS = 24 * 60 * 60 # un voyage ne peut dépasser 24 heures
-MAX_TRIP_MILES = 200 # un voyage doit avoir une distances inférieure à 200 miles environ 322 kilomètres 
+MAX_TRIP_SECONDS = 24 * 60 * 60 # un voyage ne peut dépasser 24 heures.
+MAX_TRIP_MILES = 200 # un voyage ne peut pas dépasser une distance de 200 miles (environ 322 kilomètres). 
 
 
 def run(bronze_path: str, silver_path: str) -> int:
