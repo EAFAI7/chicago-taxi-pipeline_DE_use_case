@@ -2,7 +2,7 @@
 Couche GOLD : les KPIs finaux, calcules depuis silver et ecrits sur MinIO
 en Parquet + CSV.
 
-7 tables : 
+6 tables : 
 daily_revenue, 
 avg_trip_duration, 
 taxi_daily_performance, 
@@ -20,9 +20,6 @@ from pyspark.sql import functions as F
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from common.spark_session import get_spark  # noqa: E402
 from common.storage import add_year_month_column, s3a_path  # noqa: E402
-
-TOP_N_ZONES = 10
-
 
 def _write(df, gold_root: str, name: str):
     parquet_path = f"{gold_root}/{name}"
@@ -76,8 +73,8 @@ def run(silver_path: str, gold_root: str):
         .agg(
             F.count("trip_id").alias("nb_trips"),
             F.round(F.sum("trip_total"), 2).alias("total_revenue"),
-            F.round(F.avg("trip_minutes"), 2).alias("avg_duration_minutes"),
-            F.round(F.avg("trip_km"), 2).alias("avg_distance_km"),
+            F.round(F.sum("trip_minutes"), 2).alias("total_duration_minutes"),
+            F.round(F.sum("trip_km"), 2).alias("total_distance_km"),
         )
         .orderBy("trip_date", "taxi_id")
     )
@@ -93,8 +90,8 @@ def run(silver_path: str, gold_root: str):
         .agg(
             F.count("trip_id").alias("nb_trips"),
             F.round(F.sum("trip_total"), 2).alias("total_revenue"),
-            F.round(F.avg("trip_minutes"), 2).alias("avg_duration_minutes"),
-            F.round(F.avg("trip_km"), 2).alias("avg_distance_km"),
+            F.round(F.sum("trip_minutes"), 2).alias("total_duration_minutes"),
+            F.round(F.sum("trip_km"), 2).alias("total_distance_km"),
         )
         .orderBy("trip_date", "company")
     )
@@ -110,8 +107,8 @@ def run(silver_path: str, gold_root: str):
         .agg(
             F.count("trip_id").alias("nb_trips"),
             F.round(F.sum("trip_total"), 2).alias("total_revenue"),
-            F.round(F.avg("trip_minutes"), 2).alias("avg_duration_minutes"),
-            F.round(F.avg("trip_km"), 2).alias("avg_distance_km"),
+            F.round(F.sum("trip_minutes"), 2).alias("total_duration_minutes"),
+            F.round(F.sum("trip_km"), 2).alias("total_distance_km"),
         )
         .orderBy("year_month", "taxi_id")
     )
@@ -124,8 +121,8 @@ def run(silver_path: str, gold_root: str):
         .agg(
             F.count("trip_id").alias("nb_trips"),
             F.round(F.sum("trip_total"), 2).alias("total_revenue"),
-            F.round(F.avg("trip_minutes"), 2).alias("avg_duration_minutes"),
-            F.round(F.avg("trip_km"), 2).alias("avg_distance_km"),
+            F.round(F.sum("trip_minutes"), 2).alias("total_duration_minutes"),
+            F.round(F.sum("trip_km"), 2).alias("total_distance_km"),
         )
         .orderBy("year_month", "company")
     )
