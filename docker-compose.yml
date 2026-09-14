@@ -81,6 +81,18 @@ services:
         mc mb --ignore-existing local/${MINIO_BUCKET:-taxi-datalake}
     restart: "no"
 
+  postgres_bi:
+    image: postgres:16
+    container_name: postgres_bi
+    environment:
+      POSTGRES_DB: analytics
+      POSTGRES_USER: analytics
+      POSTGRES_PASSWORD: analytics
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_bi_data:/var/lib/postgresql/data
+
   airflow-init:
     <<: *airflow-common
     entrypoint: /bin/bash
@@ -135,7 +147,7 @@ services:
     command:
       - -c
       - |
-        until airflow dags unpause chicago_taxi_medallion_pipeline && airflow dags trigger chicago_taxi_medallion_pipeline; do
+        until airflow dags unpause chicago_taxi_master && airflow dags trigger chicago_taxi_master; do
           sleep 5
         done
     depends_on:

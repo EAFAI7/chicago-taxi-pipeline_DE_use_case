@@ -1,0 +1,28 @@
+from datetime import datetime
+
+from airflow import DAG
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+
+
+with DAG(
+    dag_id="chicago_taxi_master",
+    description="Orchestration du pipeline Chicago Taxi",
+    start_date=datetime(2023, 1, 1),
+    schedule=None,
+    catchup=False,
+    tags=["data-engineering", "orchestration"],
+) as dag:
+
+    trigger_pipeline = TriggerDagRunOperator(
+        task_id="trigger_medallion_pipeline",
+        trigger_dag_id="chicago_taxi_medallion_pipeline",
+        wait_for_completion=True,
+    )
+
+    trigger_postgres = TriggerDagRunOperator(
+        task_id="trigger_gold_postgres",
+        trigger_dag_id="chicago_taxi_gold_postgres",
+        wait_for_completion=True,
+    )
+
+    trigger_pipeline >> trigger_postgres
